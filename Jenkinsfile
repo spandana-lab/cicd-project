@@ -12,6 +12,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                branch '*/main'
+                credentialsId: "$spandana-lab",
                 git 'https://github.com/spandana-lab/cicd-project.git'
             }
         }
