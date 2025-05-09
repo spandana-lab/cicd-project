@@ -56,7 +56,9 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'dependency-check-report.html', allowEmptyArchive: true
+            node{
+                archiveArtifacts artifacts: 'dependency-check-report.html', allowEmptyArchive: true
+            }
         }
     }
 }
