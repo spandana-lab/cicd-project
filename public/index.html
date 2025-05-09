@@ -175,7 +175,7 @@
     <!-- Popup Modal -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <span class="close-btn" onclick="closeModal()">×</span>
             <p id="modal-message"></p>
             <button onclick="closeModal()">OK</button>
         </div>
@@ -188,6 +188,8 @@
         const modal = document.getElementById('modal');
         const modalMessage = document.getElementById('modal-message');
         const modalContent = document.querySelector('.modal-content');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
         let isSignup = true;
 
         // Toggle between signup and signin
@@ -212,6 +214,12 @@
             modal.style.display = 'none';
         }
 
+        // Clear form fields
+        function clearForm() {
+            emailInput.value = '';
+            passwordInput.value = '';
+        }
+
         // Close modal when clicking outside
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -222,8 +230,8 @@
         // Handle form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
             const endpoint = isSignup ? '/signup' : '/signin';
 
             try {
@@ -239,10 +247,11 @@
 
                 if (response.ok) {
                     if (isSignup) {
-                        showModal('User created successfully! You can now sign in.', true);
+                        showModal('🎉 Account Created Successfully! ✅ You can now sign in.', true);
                     } else {
-                        showModal(`Sign in successful! Token: ${data.token}`, true);
+                        showModal('🎉 Sign In Successful! ✅ Welcome back!', true);
                     }
+                    clearForm(); // Clear the form fields on success
                 } else {
                     showModal(data.message || 'An error occurred.', false);
                 }
