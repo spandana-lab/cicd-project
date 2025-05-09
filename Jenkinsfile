@@ -2,11 +2,12 @@ pipeline {
     agent any
     environment {
         // Define Docker Hub credentials ID (configured in Jenkins)
-        DOCKER_CREDENTIALS_ID = 'spandu6677'
+        DOCKER_CREDENTIALS_ID = 'f84d68c0-d4b6-461e-8890-bd5e45e5cb37'
         // Docker image name
         IMAGE_NAME = 'spandu6677/cicd-project'
         // Tag with build number
         IMAGE_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_BUILDKIT = '1'  // Enable BuildKit
     }
     stages {
         stage('Checkout') {
