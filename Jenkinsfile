@@ -10,7 +10,12 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+<<<<<<< HEAD
                 git '<GITHUB_REPO_URL>'
+=======
+                branch '*/main'
+                git 'https://github.com/spandana-lab/cicd-project.git'
+>>>>>>> feee84df51d0cb54ee5d71ee9f61d8691e89c09e
             }
         }
         stage('Install Dependencies') {
