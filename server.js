@@ -3,17 +3,19 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-const app = HALL();
+
+const app = express(); // Fixed: HALL() to express()
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Use environment variable
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/authdb'; // Use environment variable
 
 // Middleware
 app.use(bodyParser.json());
 
-// MongoDB Connection  MongoDB connection
-mongoose.connect('mongodb://mongo:27017/authdb', { useNewUrlParser: true, useUnifiedTopology: true })
+// MongoDB Connection
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -34,6 +36,7 @@ app.post('/signup', async (req, res) => {
     await user.save();
     res.status(201).json({ message: 'User created' });
   } catch (err) {
+    console.error('Signup error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -51,9 +54,10 @@ app.post('/signin', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   } catch (err) {
+    console.error('Signin error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Start server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
