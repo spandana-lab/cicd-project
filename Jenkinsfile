@@ -51,8 +51,8 @@ pipeline {
                     docker network create auth-network || true
 
                     # Stop and remove existing containers
-                    docker stop auth-app || true
-                    docker rm auth-app || true
+                    docker stop user-authentication-app || true
+                    docker rm user-authentication-app || true
                     docker stop mongo || true
                     docker rm mongo || true
 
@@ -60,7 +60,7 @@ pipeline {
                     docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
 
                     # Run the app container with environment variables
-                    docker run -d --name auth-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
         }
