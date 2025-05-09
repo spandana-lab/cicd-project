@@ -4,7 +4,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'f84d68c0-d4b6-461e-8890-bd5e45e5cb37'  // Matches your Jenkins credentials ID
         IMAGE_NAME = 'spandu6677/cicd-project'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_BUILDKIT = '1'  // Enable BuildKit
+        //DOCKER_BUILDKIT = '1'  // Enable BuildKit
     }
     stages {
         stage('Checkout') {
