@@ -7,7 +7,7 @@ pipeline {
         IMAGE_NAME = 'spandu6677/cicd-project'
         // Tag with build number
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_BUILDKIT = '1'  // Enable BuildKit
+        //DOCKER_BUILDKIT = '1'  // Enable BuildKit
     }
     stages {
         stage('Checkout') {
