@@ -4,10 +4,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 
-const app = express(); // Fixed: HALL() to express()
+const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Use environment variable
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/authdb'; // Use environment variable
+const JWT_SECRET = process.env.JWT_SECRET;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/authdb';
+
+// Validate JWT_SECRET
+if (!JWT_SECRET) {
+    console.error('Error: JWT_SECRET environment variable is not set');
+    process.exit(1);
+}
 
 // Middleware
 app.use(bodyParser.json());
@@ -23,6 +29,11 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true }
 });
 const User = mongoose.model('User', userSchema);
+
+// Root Route (GET /)
+app.get('/', (req, res) => {
+  res.send('Welcome to the Auth App! Use /signup or /signin to interact with the API.');
+});
 
 // Signup Route
 app.post('/signup', async (req, res) => {
