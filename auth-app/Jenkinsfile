@@ -21,8 +21,9 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') 
+                withSonarQubeEnv('SonarQube') {
                     sh "${tool 'SonarScanner'}/bin/sonar-scanner"
+                }
                 withSonarQubeEnv('SonarQube') {
                     sh 'sonar-scanner -Dsonar.projectKey=auth-app -Dsonar.sources=. -Dsonar.host.url=http://54.203.99.36/:9000 -Dsonar.login=$SONAR_TOKEN'
                 }
