@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,9 @@ if (!JWT_SECRET) {
 // Middleware
 app.use(bodyParser.json());
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // MongoDB Connection
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
@@ -30,9 +34,9 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// Root Route (GET /)
+// Root Route - Serve index.html
 app.get('/', (req, res) => {
-  res.send('Welcome to the Auth App! Use /signup or /signin to interact with the API.');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Signup Route
