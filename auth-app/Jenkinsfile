@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        nodejs 'Node24'
+        nodejs 'node24'
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('spandu6677')
