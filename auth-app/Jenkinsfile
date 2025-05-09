@@ -7,7 +7,6 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('spandu6677')
         SONARQUBE_SERVER = 'SonarQube'
     }
-    
     stages {
         stage('Checkout') {
             steps {
@@ -22,16 +21,12 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh "${tool 'SonarScanner'}/bin/sonar-scanner"
-                }
-                withSonarQubeEnv('SonarQube') {
-                    sh 'sonar-scanner -Dsonar.projectKey=auth-app -Dsonar.sources=. -Dsonar.host.url=http://54.203.99.36/:9000 -Dsonar.login=$SONAR_TOKEN'
+                    sh 'sonar-scanner -Dsonar.projectKey=auth-app -Dsonar.sources=. -Dsonar.host.url=http://54.203.99.36:9000 -Dsonar.login=$SONAR_TOKEN'
                 }
             }
         }
         stage('OWASP Dependency Check') {
             steps {
-                dependencyCheck additionalArguments: '--scan .', odcInstallation: 'DependencyCheck'
                 sh '/opt/dependency-check/bin/dependency-check.sh --project auth-app --scan . --out dependency-check-report.html --format HTML'
                 dependencyCheckPublisher pattern: 'dependency-check-report.html'
             }
@@ -64,5 +59,4 @@ pipeline {
             archiveArtifacts artifacts: 'dependency-check-report.html', allowEmptyArchive: true
         }
     }
-}
 }
