@@ -30,19 +30,21 @@ pipeline {
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest'
-                    args '--network host -v /var/lib/jenkins/workspace/s@2:/var/lib/jenkins/workspace/s@2:rw,z'
+                    args '--network host --entrypoint="" -v ${WORKSPACE}:${WORKSPACE}:rw,z'
                 }
             }
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('mysonar') {
                         sh '''
-                            export SONAR_USER_HOME=/var/lib/jenkins/workspace/s@2/.sonar
+                            export SONAR_USER_HOME=${WORKSPACE}/.sonar
                             sonar-scanner \
                                 -Dsonar.projectKey=cicd-project \
                                 -Dsonar.sources=. \
-                                -Dsonar.host.url=http://54.203.99.36:9000
-                            ls -l $SONAR_USER_HOME || echo "Sonar cache directory not found"
+                                -Dsonar.host.url=http://54.203.99.36:9000 \
+                                -Dsonar.scm.provider=git \
+                                -Dsonar.ws.timeout=120
+                            ls -l ${SONAR_USER_HOME} || echo "Sonar cache directory not found"
                             ls -l .scannerwork || echo "Scanner work directory not found"
                         '''
                     }
