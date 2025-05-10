@@ -119,4 +119,3 @@ pipeline {
             sh "docker rmi ${IMAGE_NAME}:latest || true"
         }
     }
-}
