@@ -30,14 +30,16 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('mysonar') {
-                    sh """
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('mysonar') {
+                        sh """
                         sonar-scanner \
-                          -Dsonar.projectKey=cicd-project \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=http://54.203.99.36:9000 \
-                          -Dsonar.login=${SONAR_TOKEN}
-                    """
+                        -Dsonar.projectKey=cicd-project \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://54.203.99.36:9000 \
+                        -Dsonar.login=$SONAR_TOKEN
+                        """
+                    }
                 }
             }
         }
