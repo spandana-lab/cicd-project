@@ -91,7 +91,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                withCredentials([string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')]) {
+                withCredentials([string(credentialsId: 'fht54twshtru75ewtewshtyru76753shgfku75', variable: 'JWT_SECRET')]) {
                     sh """
                         # Create a Docker network for the app and MongoDB
                         docker network create auth-network || true
