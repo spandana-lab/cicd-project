@@ -67,7 +67,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                //withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                 sh """
                     # Create a Docker network for the app and MongoDB
                     docker network create auth-network || true
@@ -86,7 +86,7 @@ pipeline {
                     # Run the app container with environment variables
                     docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
                 """
-                }
+                //}
             }
         }
     }
