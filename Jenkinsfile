@@ -4,6 +4,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'f84d68c0-d4b6-461e-8890-bd5e45e5cb37'  // Matches your Jenkins credentials ID
         IMAGE_NAME = 'spandu6677/cicd-project'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
+        SONARQUBE_SERVER = 'SonarQube'
         //DOCKER_BUILDKIT = '1'  // Enable BuildKit
     }
     stages {
@@ -27,11 +28,31 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        sonar-scanner \
+                          -Dsonar.projectKey=cicd-project \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://54.203.99.36:9000 \
+                          -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
                     docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
+            }
+        }
+        stage('Trivy Scan') {
+            steps {
+                sh """
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
         stage('Push to Docker Hub') {
@@ -46,6 +67,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                 sh """
                     # Create a Docker network for the app and MongoDB
                     docker network create auth-network || true
@@ -55,6 +77,8 @@ pipeline {
                     docker rm user-authentication-app || true
                     docker stop mongo || true
                     docker rm mongo || true
+                    docker stop sonarqube || true
+                    docker rm sonarqube || true
 
                     # Run MongoDB container
                     docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
@@ -62,6 +86,7 @@ pipeline {
                     # Run the app container with environment variables
                     docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
                 """
+                }
             }
         }
     }
@@ -71,6 +96,10 @@ pipeline {
         }
     }
 }
+
+
+
+
 
 
 
