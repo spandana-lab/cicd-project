@@ -91,23 +91,24 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                withCredentials([string(credentialsId: 'fht54twshtru75ewtewshtyru76753shgfku75', variable: 'JWT_SECRET')]) {
-                    sh """
-                        # Create a Docker network for the app and MongoDB
-                        docker network create auth-network || true
+                sh """
+                    # Create a Docker network for the app and MongoDB
+                    docker network create auth-network || true
 
-                        # Stop and remove existing containers
-                        docker stop user-authentication-app || true
-                        docker rm user-authentication-app || true
-                        docker stop mongo || true
-                        docker rm mongo || true
+                    # Stop and remove existing containers
+                    docker stop user-authentication-app || true
+                    docker rm user-authentication-app || true
+                    docker stop mongo || true
+                    docker rm mongo || true
+                    docker stop sonarqube || true
+                    docker rm sonarqube || true
 
-                        # Run MongoDB container
-                        docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
+                    # Run MongoDB container
+                    docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
 
-                        # Run the app container with environment variables
-                        docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET=\${JWT_SECRET} ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                    # Run the app container with environment variables
+                    docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
+                """
                 }
             }
         }
