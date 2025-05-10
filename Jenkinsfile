@@ -30,19 +30,21 @@ pipeline {
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest'
-                    args '--network host' // Allows access to SonarQube server
+                    args '--network host -v /var/lib/jenkins/workspace/s@2:/var/lib/jenkins/workspace/s@2:rw,z'
                 }
             }
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarScanner') {
-                        sh """
+                    withSonarQubeEnv('mysonar') {
+                        sh '''
+                            export SONAR_USER_HOME=/var/lib/jenkins/workspace/s@2/.sonar
                             sonar-scanner \
                                 -Dsonar.projectKey=cicd-project \
                                 -Dsonar.sources=. \
-                                -Dsonar.host.url=http://54.203.99.36:9000 \
-                                -Dsonar.login=\${SONAR_TOKEN}
-                        """
+                                -Dsonar.host.url=http://54.203.99.36:9000
+                            ls -l $SONAR_USER_HOME || echo "Sonar cache directory not found"
+                            ls -l .scannerwork || echo "Scanner work directory not found"
+                        '''
                     }
                 }
             }
@@ -73,24 +75,24 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh """
-                    # Create a Docker network for the app and MongoDB
-                    docker network create auth-network || true
+                withCredentials([string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')]) {
+                    sh """
+                        # Create a Docker network for the app and MongoDB
+                        docker network create auth-network || true
 
-                    # Stop and remove existing containers
-                    docker stop user-authentication-app || true
-                    docker rm user-authentication-app || true
-                    docker stop mongo || true
-                    docker rm mongo || true
-                    docker stop sonarqube || true
-                    docker rm sonarqube || true
+                        # Stop and remove existing containers
+                        docker stop user-authentication-app || true
+                        docker rm user-authentication-app || true
+                        docker stop mongo || true
+                        docker rm mongo || true
 
-                    # Run MongoDB container
-                    docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
+                        # Run MongoDB container
+                        docker run -d --name mongo --network auth-network -p 27017:27017 mongo:latest
 
-                    # Run the app container with environment variables
-                    docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET='GciOiJIdfhey763fdiwe87d6gdisj1NiIc6IkpXV' ${IMAGE_NAME}:${IMAGE_TAG}
-                """
+                        # Run the app container with environment variables
+                        docker run -d --name user-authentication-app --network auth-network -p 3000:3000 -e JWT_SECRET=\${JWT_SECRET} ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
             }
         }
     }
