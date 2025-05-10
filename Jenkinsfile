@@ -43,7 +43,8 @@ pipeline {
                                 -Dsonar.sources=. \
                                 -Dsonar.host.url=http://54.203.99.36:9000 \
                                 -Dsonar.scm.provider=git \
-                                -Dsonar.ws.timeout=120
+                                -Dsonar.ws.timeout=120 \
+                                -Dsonar.inclusions=**/*.js,**/*.ts
                             ls -l ${SONAR_USER_HOME} || echo "Sonar cache directory not found"
                             ls -l .scannerwork || echo "Scanner work directory not found"
                         '''
@@ -62,8 +63,10 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
-                        docker.image("${IMAGE_NAME}:${IMAGE_NAME}:${IMAGE_TAG}").push('latest')
+                        def image = docker.image("${IMAGE_NAME}:${IMAGE_TAG}")
+                        image.push()
+                        sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                        image.push('latest')
                     }
                 }
             }
@@ -94,7 +97,7 @@ pipeline {
     post {
         always {
             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            sh "docker rmi ${IMAGE_NAME}:latest || true"
         }
     }
 }
-
