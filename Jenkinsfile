@@ -36,18 +36,28 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('mysonar') {
-                        sh '''
-                            export SONAR_USER_HOME=${WORKSPACE}/.sonar
-                            sonar-scanner \
-                                -Dsonar.projectKey=cicd-project \
-                                -Dsonar.sources=. \
-                                -Dsonar.host.url=http://54.203.99.36:9000 \
-                                -Dsonar.scm.provider=git \
-                                -Dsonar.ws.timeout=120 \
-                                -Dsonar.inclusions=**/*.js,**/*.ts
-                            ls -l ${SONAR_USER_HOME} || echo "Sonar cache directory not found"
-                            ls -l .scannerwork || echo "Scanner work directory not found"
-                        '''
+                        script {
+                            try {
+                                sh '''
+                                    # Verify Git repository
+                                    ls -la ${WORKSPACE}/.git || echo "No .git directory found"
+                                    git status
+                                    export SONAR_USER_HOME=${WORKSPACE}/.sonar
+                                    sonar-scanner \
+                                        -Dsonar.projectKey=cicd-project \
+                                        -Dsonar.sources=. \
+                                        -Dsonar.host.url=http://54.203.99.36:9000 \
+                                        -Dsonar.scm.provider=git \
+                                        -Dsonar.scanner.socketTimeout=120 \
+                                        -Dsonar.inclusions=**/*.js,**/*.ts
+                                    ls -l ${SONAR_USER_HOME} || echo "Sonar cache directory not found"
+                                    ls -l .scannerwork || echo "Scanner work directory not found"
+                                '''
+                            } catch (Exception e) {
+                                echo "SonarQube scan failed: ${e.message}"
+                                error "Stopping pipeline due to SonarQube failure"
+                            }
+                        }
                     }
                 }
             }
@@ -57,6 +67,13 @@ pipeline {
                 script {
                     docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
+            }
+        }
+        stage('Trivy Scan') {
+            steps {
+                sh """
+                    trivy image --severity HIGH,CRITICAL --no-progress ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
         stage('Push to Docker Hub') {
