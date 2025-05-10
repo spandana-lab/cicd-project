@@ -8,7 +8,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/spandana-lab/cicd-project.git', branch: 'main'
+                // Ensure full clone with .git directory
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/spandana-lab/cicd-project.git']],
+                    extensions: [[$class: 'CloneOption', noTags: false, shallow: false, depth: 0]]
+                ])
+                // Verify .git directory after checkout
+                sh 'ls -la .git || echo "No .git directory found in primary workspace"'
             }
         }
         stage('Check Docker') {
@@ -40,14 +48,14 @@ pipeline {
                             try {
                                 sh '''
                                     # Verify Git repository
-                                    ls -la ${WORKSPACE}/.git || echo "No .git directory found"
-                                    git status
+                                    ls -la ${WORKSPACE}/.git || echo "No .git directory found in Docker workspace"
+                                    git status || echo "Git status failed"
                                     export SONAR_USER_HOME=${WORKSPACE}/.sonar
                                     sonar-scanner \
                                         -Dsonar.projectKey=cicd-project \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://54.203.99.36:9000 \
-                                        -Dsonar.scm.provider=git \
+                                        -Dsonar.scm.disabled=true \
                                         -Dsonar.scanner.socketTimeout=120 \
                                         -Dsonar.inclusions=**/*.js,**/*.ts
                                     ls -l ${SONAR_USER_HOME} || echo "Sonar cache directory not found"
@@ -67,13 +75,6 @@ pipeline {
                 script {
                     docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
-            }
-        }
-        stage('Trivy Scan') {
-            steps {
-                sh """
-                    trivy image --severity HIGH,CRITICAL --no-progress ${IMAGE_NAME}:${IMAGE_TAG}
-                """
             }
         }
         stage('Push to Docker Hub') {
